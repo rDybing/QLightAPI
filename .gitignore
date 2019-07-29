@@ -1,0 +1,7 @@
+# no binaries!
+qlight
+*.exe
+
+# no config files
+*.json
+
