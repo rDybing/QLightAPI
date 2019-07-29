@@ -22,6 +22,8 @@ func main() {
 
 	go api.InitAPI()
 
+	help()
+
 	for !quit {
 		fmt.Scanf("%s\n", &input)
 		switch input {
