@@ -44,17 +44,18 @@ type outPutT struct {
 }
 
 type appInfoT struct {
-	ID         string
-	Name       string
-	WH         string
-	Aspect     string
-	LastIP     string
-	OS         string
-	Model      string
-	Logins     int
-	FirstLogin string
-	LastLogin  string
-	LastMode   modeT
+	ID            string
+	Name          string
+	WH            string
+	Aspect        string
+	LastPublicIP  string
+	LastPrivateIP string
+	OS            string
+	Model         string
+	Logins        int
+	FirstLogin    string
+	LastLogin     string
+	LastMode      modeT
 }
 
 type appListT struct {
@@ -145,7 +146,8 @@ func (a *appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 			aTemp.Name = r.FormValue("Name")
 			aTemp.WH = r.FormValue("WH")
 			aTemp.Aspect = r.FormValue("Aspect")
-			aTemp.LastIP = r.RemoteAddr
+			aTemp.LastPublicIP = r.RemoteAddr
+			aTemp.LastPrivateIP = r.FormValue("PrivateIP")
 			aTemp.OS = r.FormValue("OS")
 			aTemp.Model = r.FormValue("Model")
 			modeTemp = r.FormValue("Mode")
@@ -215,6 +217,30 @@ func getMode(in string) modeT {
 	return out
 }
 
+func getHostIP(in uint16) string {
+	// TODO: Change to compare Client IP with Controller IP
+	var out string
+	/*
+		if hostIP, ok := activeGames[in]; ok {
+			out = hostIP
+		} else {
+			out = "N/A"
+		}
+	*/
+	return out
+}
+
+// GetVer returns current (major) version of server
+func GetVer() string {
+	return version
+}
+
+// CloseApp exits the app gracefully
+func CloseApp(msg string) {
+	fmt.Println(msg)
+	os.Exit(0)
+}
+
 //************************************************* Safety Measures ****************************************************
 
 func qualifyGET(w http.ResponseWriter, method string, str string) bool {
@@ -270,28 +296,4 @@ func qualifyQuery(w http.ResponseWriter, in string) bool {
 		return false
 	}
 	return true
-}
-
-func getHostIP(in uint16) string {
-	// TODO: Change to compare Client IP with Controller IP
-	var out string
-	/*
-		if hostIP, ok := activeGames[in]; ok {
-			out = hostIP
-		} else {
-			out = "N/A"
-		}
-	*/
-	return out
-}
-
-// GetVer returns current (major) version of server
-func GetVer() string {
-	return version
-}
-
-// CloseApp exits the app gracefully
-func CloseApp(msg string) {
-	fmt.Println(msg)
-	os.Exit(0)
 }
