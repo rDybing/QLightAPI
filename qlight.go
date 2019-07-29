@@ -11,15 +11,42 @@
 package main
 
 import (
+	"fmt"
+
 	api "github.com/rDybing/qlightAPI/http"
 )
 
 func main() {
+	var input string
 	quit := false
 
 	go api.InitAPI()
 
 	for !quit {
-
+		fmt.Scanf("%s\n", &input)
+		switch input {
+		case "help":
+			help()
+		case "quit":
+			quit = true
+		}
 	}
+	api.CloseApp("Bahbah")
+}
+
+func help() {
+	ver := api.GetVer()
+	fmt.Println("---------------------")
+	fmt.Printf("--  qliteAPI %s  --\n", ver)
+	fmt.Println("---------------------")
+	fmt.Println("Available Commands:")
+	fmt.Println(" - help        | list of commands")
+	fmt.Println(" - quit        | exit this application")
+}
+
+func getInput(in string) string {
+	var input string
+	fmt.Println(in)
+	fmt.Scanf("%s\n", &input)
+	return input
 }

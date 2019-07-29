@@ -2,7 +2,6 @@ package api
 
 import (
 	"crypto/sha1"
-	"encoding/json"
 	"fmt"
 	"hash"
 	"io"
@@ -18,8 +17,17 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const configFile = "./config.json"
 const version = "v0.1.0"
+
+type modeT int
+
+const (
+	clientSP modeT = iota
+	clientComp
+	clientIOT
+	ctrlLite
+	ctrlPro
+)
 
 type configT struct {
 	FullChain string
@@ -35,7 +43,7 @@ type outPutT struct {
 	serverIP string
 }
 
-type AppInfoT struct {
+type appInfoT struct {
 	ID         string
 	Name       string
 	WH         string
@@ -46,23 +54,23 @@ type AppInfoT struct {
 	Logins     int
 	FirstLogin string
 	LastLogin  string
+	LastMode   modeT
 }
 
-type AppListT struct {
-	List map[string]AppInfoT
+type appListT struct {
+	list map[string]appInfoT
 }
 
 // InitAPI sets up the endpoints and spins up the API server
 func InitAPI() {
-	var app AppInfoT
-	var con configT
+	var config configT
 	var out outPutT
-	var apps AppListT
+	var apps appListT
 
-	apps.List = make(map[string]appInfoT)
+	apps.list = make(map[string]appInfoT)
 
-	tlsOK := con.loadConfig()
-	out.getPrivateIP(con.Local, tlsOK)
+	tlsOK := config.loadConfig()
+	out.getPrivateIP(config.Local, tlsOK)
 
 	router := mux.NewRouter()
 
@@ -73,13 +81,13 @@ func InitAPI() {
 		ReadTimeout:  15 * time.Second,
 	}
 
-	router.Handle("/post/appInfo/", httpauth.SimpleBasicAuth(con.AuthName, con.AuthKey)(http.HandlerFunc(apps.postAppInfo)))
-	router.Handle("/post/controllerIP/", httpauth.SimpleBasicAuth(con.AuthName, con.AuthKey)(http.HandlerFunc(postControllerIP)))
+	router.Handle("/post/appInfo/", httpauth.SimpleBasicAuth(config.AuthName, config.AuthKey)(http.HandlerFunc(apps.postAppInfo)))
+	router.Handle("/post/controllerIP/", httpauth.SimpleBasicAuth(config.AuthName, config.AuthKey)(http.HandlerFunc(postControllerIP)))
 
 	if tlsOK {
 		fmt.Println("TLS Certs loaded - running over https")
 		fmt.Printf("API    : %s\n", out.serverIP)
-		log.Fatal(server.ListenAndServeTLS(con.FullChain, con.PrivKey))
+		log.Fatal(server.ListenAndServeTLS(config.FullChain, config.PrivKey))
 	} else {
 		fmt.Println("No TLS Certs - running over http")
 		fmt.Printf("API    : %s\n", out.serverIP)
@@ -118,38 +126,13 @@ func (o *outPutT) getPrivateIP(local, tlsOK bool) {
 	o.serverIP = ip
 }
 
-func (c *configT) loadConfig() bool {
-	ok := true
-	f, err := os.Open(configFile)
-	if err != nil {
-		log.Printf("Failed to load config file - no https for you!\n%v\n", err)
-		ok = false
-	}
-	defer f.Close()
-
-	configJSON := json.NewDecoder(f)
-	if err = configJSON.Decode(&c); err != nil {
-		log.Printf("Failed to decode config JSON - no https for you!\n%v\n", err)
-		ok = false
-	}
-	// get if tls certs exist on server
-	if _, err := os.Stat(c.FullChain); err != nil {
-		log.Printf("Failed to find FullChain cert - no https for you!\n%v\n", err)
-		ok = false
-	}
-	if _, err := os.Stat(c.PrivKey); err != nil {
-		log.Printf("Failed to find Private Key - no https for you!\n%v\n", err)
-		ok = false
-	}
-	return ok
-}
-
 //************************************************* Post Calls *********************************************************
 
-func (a *AppListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
+func (a *appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 	var h hash.Hash
 	var hash string
-	var aTemp AppInfoT
+	var aTemp appInfoT
+	var modeTemp string
 
 	t := time.Now()
 	method := r.Method
@@ -165,23 +148,26 @@ func (a *AppListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 			aTemp.LastIP = r.RemoteAddr
 			aTemp.OS = r.FormValue("OS")
 			aTemp.Model = r.FormValue("Model")
+			modeTemp = r.FormValue("Mode")
 
 			h = sha1.New()
 			io.WriteString(h, aTemp.ID+aTemp.Name)
 			hash = fmt.Sprintf("%x", h.Sum(nil))
 
-			if _, found := a.List[hash]; found {
-				aTemp = a.List[hash]
+			if _, found := a.list[hash]; found {
+				aTemp = a.list[hash]
 				aTemp.LastLogin = t.UTC().Format("2006-01-02 15:04:05")
 				aTemp.Logins++
-				a.List[hash] = aTemp
+				aTemp.LastMode = getMode(modeTemp)
+				a.list[hash] = aTemp
 				status := "OK"
 				fmt.Fprintf(w, status)
 			} else {
 				aTemp.FirstLogin = t.UTC().Format("2006-01-02 15:04:05")
 				aTemp.Logins = 1
 				aTemp.LastLogin = aTemp.FirstLogin
-				a.List[hash] = aTemp
+				aTemp.LastMode = getMode(modeTemp)
+				a.list[hash] = aTemp
 				// append new entry to file
 				go a.SaveAppList()
 				// return new registration Created OK
@@ -207,6 +193,26 @@ func postControllerIP(w http.ResponseWriter, r *http.Request) {
 		out = "ERROR:Could not parse host ID"
 	}
 	fmt.Fprintf(w, out)
+}
+
+//************************************************* Helpers ************************************************************
+
+func getMode(in string) modeT {
+	var out modeT
+
+	switch in {
+	case "clientSP":
+		out = clientSP
+	case "clientComp":
+		out = clientComp
+	case "clientIOT":
+		out = clientIOT
+	case "ctrlLite":
+		out = ctrlLite
+	case "ctrlPro":
+		out = ctrlPro
+	}
+	return out
 }
 
 //************************************************* Safety Measures ****************************************************
@@ -266,12 +272,26 @@ func qualifyQuery(w http.ResponseWriter, in string) bool {
 	return true
 }
 
-/*
-// CloseApp saves current log and exits the app gracefully
-func CloseApp(in string, save bool) {
-	if save {
-		file.SaveAuxApp(auxAppList)
-	}
+func getHostIP(in uint16) string {
+	// TODO: Change to compare Client IP with Controller IP
+	var out string
+	/*
+		if hostIP, ok := activeGames[in]; ok {
+			out = hostIP
+		} else {
+			out = "N/A"
+		}
+	*/
+	return out
+}
+
+// GetVer returns current (major) version of server
+func GetVer() string {
+	return version
+}
+
+// CloseApp exits the app gracefully
+func CloseApp(msg string) {
+	fmt.Println(msg)
 	os.Exit(0)
 }
-*/

@@ -7,7 +7,36 @@ import (
 	"os"
 )
 
-const appListFile = "appList.json"
+const configFile = "./config.json"
+const appListFile = "./appList.json"
+
+//************************************************* ConfigFile *********************************************************
+
+func (c *configT) loadConfig() bool {
+	ok := true
+	f, err := os.Open(configFile)
+	if err != nil {
+		log.Printf("Failed to load config file - no https for you!\n%v\n", err)
+		ok = false
+	}
+	defer f.Close()
+
+	configJSON := json.NewDecoder(f)
+	if err = configJSON.Decode(&c); err != nil {
+		log.Printf("Failed to decode config JSON - no https for you!\n%v\n", err)
+		ok = false
+	}
+	// get if tls certs exist on server
+	if _, err := os.Stat(c.FullChain); err != nil {
+		log.Printf("Failed to find FullChain cert - no https for you!\n%v\n", err)
+		ok = false
+	}
+	if _, err := os.Stat(c.PrivKey); err != nil {
+		log.Printf("Failed to find Private Key - no https for you!\n%v\n", err)
+		ok = false
+	}
+	return ok
+}
 
 //************************************************* AppsList ***********************************************************
 /*
@@ -34,14 +63,12 @@ func LoadAppList() ([]AppListT, error) {
 }
 */
 
-// SaveAppList Saves the log file of apps/devices that have used this API
-// Call at new entry and at exit
-func (a AppListT) SaveAppList() {
-	var temp AppListT
-	var out []AppListT
+func (a appListT) SaveAppList() {
+	var temp appInfoT
+	var out []appInfoT
 
-	for i := range in {
-		temp = in[i]
+	for i := range a.list {
+		temp = a.list[i]
 		out = append(out, temp)
 	}
 	outBytes, err := json.MarshalIndent(out, "", "	")
