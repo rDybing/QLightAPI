@@ -78,8 +78,8 @@ func InitAPI() {
 		ReadTimeout:  15 * time.Second,
 	}
 
-	router.Handle("/post/appInfo/", httpauth.SimpleBasicAuth(config.AuthName, config.AuthKey)(http.HandlerFunc(apps.postAppInfo)))
-	router.Handle("/post/controllerIP/", httpauth.SimpleBasicAuth(config.AuthName, config.AuthKey)(http.HandlerFunc(postControllerIP)))
+	router.Handle("/postAppInfo/", httpauth.SimpleBasicAuth(config.AuthName, config.AuthKey)(http.HandlerFunc(apps.postAppInfo)))
+	router.Handle("/postControllerIP/", httpauth.SimpleBasicAuth(config.AuthName, config.AuthKey)(http.HandlerFunc(postControllerIP)))
 
 	if tlsOK {
 		fmt.Println("TLS Certs loaded - running over https")
@@ -90,15 +90,6 @@ func InitAPI() {
 		fmt.Printf("API    : %s\n", out.serverIP)
 		log.Fatal(server.ListenAndServe())
 	}
-}
-
-func (o *outPutT) testPage(w http.ResponseWriter, r *http.Request) {
-	ip, port, _ := net.SplitHostPort(r.RemoteAddr)
-	o.clientIP = fmt.Sprintf("%s:%s", ip, port)
-	fmt.Fprintf(w, "%s", o.message)
-	fmt.Printf("Inbound from     : %s\n", o.clientIP)
-	fmt.Printf("Response from    : %s\n", o.serverIP)
-	fmt.Fprintf(w, "Inbound from     : %s\nResponse from    : %s", o.clientIP, o.serverIP)
 }
 
 func (o *outPutT) getPrivateIP(local, tlsOK bool) {
