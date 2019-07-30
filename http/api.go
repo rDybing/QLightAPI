@@ -78,8 +78,8 @@ func InitAPI() {
 		ReadTimeout:  15 * time.Second,
 	}
 
-	router.Handle("/postAppInfo/", httpauth.SimpleBasicAuth(config.AuthName, config.AuthKey)(http.HandlerFunc(apps.postAppInfo)))
-	router.Handle("/postControllerIP/", httpauth.SimpleBasicAuth(config.AuthName, config.AuthKey)(http.HandlerFunc(postControllerIP)))
+	router.Handle("/postAppInfo", httpauth.SimpleBasicAuth(config.AuthName, config.AuthKey)(http.HandlerFunc(apps.postAppInfo)))
+	router.Handle("/postControllerIP", httpauth.SimpleBasicAuth(config.AuthName, config.AuthKey)(http.HandlerFunc(postControllerIP)))
 
 	if tlsOK {
 		fmt.Println("TLS Certs loaded - running over https")
