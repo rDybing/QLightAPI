@@ -73,18 +73,18 @@ func (al appListT) SaveAppList() {
 	}
 	outBytes, err := json.MarshalIndent(out, "", "	")
 	if err != nil {
-		log.Printf("Could not JSONify AppList, %v", err)
+		log.Printf("ERROR:Could not JSONify AppList, %v", err)
 	}
 	outJSON := string(outBytes[:])
 	f, err := os.OpenFile(appListFile, os.O_TRUNC|os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
-		log.Printf("ERROR:Log File is being very stubborn, %v\n", err)
+		log.Printf("ERROR:Applist File is being very stubborn, %v\n", err)
 	} else {
 		if outJSON != "null" {
 			fmt.Fprintf(f, outJSON)
 			fmt.Println(outJSON)
 		} else {
-			fmt.Println("No logging data in AppList to save")
+			fmt.Println("No data in AppList to save")
 		}
 	}
 	defer f.Close()

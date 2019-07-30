@@ -64,7 +64,8 @@ type appListT map[string]appInfoT
 func InitAPI() {
 	var config configT
 	var out outPutT
-	var apps appListT
+	var appList appListT
+	appList = make(map[string]appInfoT)
 
 	tlsOK := config.loadConfig()
 	out.getPrivateIP(config.Local, tlsOK)
@@ -78,7 +79,7 @@ func InitAPI() {
 		ReadTimeout:  15 * time.Second,
 	}
 
-	router.Handle("/postAppInfo", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(apps.postAppInfo)))
+	router.Handle("/postAppInfo", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(appList.postAppInfo)))
 	router.Handle("/postControllerIP", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(postControllerIP)))
 
 	if tlsOK {
