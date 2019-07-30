@@ -17,6 +17,9 @@ of clients IP. Assumes same public-facing IP of client and controller.
 
 Contains the following non-standard libraries:
 
+- github.com/goji/httpauth
+- github.com/gorilla/mux
+
 **Contact:**
 
 location   | name/handle

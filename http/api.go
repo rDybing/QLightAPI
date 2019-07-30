@@ -58,17 +58,13 @@ type appInfoT struct {
 	LastMode      modeT
 }
 
-type appListT struct {
-	list map[string]appInfoT
-}
+type appListT map[string]appInfoT
 
 // InitAPI sets up the endpoints and spins up the API server
 func InitAPI() {
 	var config configT
 	var out outPutT
 	var apps appListT
-
-	apps.list = make(map[string]appInfoT)
 
 	tlsOK := config.loadConfig()
 	out.getPrivateIP(config.Local, tlsOK)
@@ -129,7 +125,10 @@ func (o *outPutT) getPrivateIP(local, tlsOK bool) {
 
 //************************************************* Post Calls *********************************************************
 
-func (a *appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
+func (al appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
+	loc := "postAppInfo"
+	fmt.Printf("package: api			func: %s\n", loc)
+
 	var h hash.Hash
 	var hash string
 	var aTemp appInfoT
@@ -156,12 +155,12 @@ func (a *appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 			io.WriteString(h, aTemp.ID+aTemp.Name)
 			hash = fmt.Sprintf("%x", h.Sum(nil))
 
-			if _, found := a.list[hash]; found {
-				aTemp = a.list[hash]
+			if _, found := al[hash]; found {
+				aTemp = al[hash]
 				aTemp.LastLogin = t.UTC().Format("2006-01-02 15:04:05")
 				aTemp.Logins++
 				aTemp.LastMode = getMode(modeTemp)
-				a.list[hash] = aTemp
+				al[hash] = aTemp
 				status := "OK"
 				fmt.Fprintf(w, status)
 			} else {
@@ -169,18 +168,19 @@ func (a *appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 				aTemp.Logins = 1
 				aTemp.LastLogin = aTemp.FirstLogin
 				aTemp.LastMode = getMode(modeTemp)
-				a.list[hash] = aTemp
+				al[hash] = aTemp
 				// append new entry to file
-				go a.SaveAppList()
+				go al.SaveAppList()
 				// return new registration Created OK
 				fmt.Fprintf(w, "NEW")
 			}
 		}
+		fmt.Printf("Public IP: %s | PrivateIP: %s", aTemp.LastPublicIP, aTemp.LastPrivateIP)
 	}
 }
 
 func postControllerIP(w http.ResponseWriter, r *http.Request) {
-	loc := "(getLocalIP)"
+	loc := "getLocalIP"
 	fmt.Printf("package: api			func: %s\n", loc)
 
 	var out string

@@ -1,70 +1,16 @@
 package api
 
 import (
-	"bytes"
-	"io/ioutil"
-	"net/http"
-	"net/http/httptest"
+	"fmt"
 	"strings"
 	"testing"
 )
 
-func TestTestPage(t *testing.T) {
-	tt := []struct {
-		name  string
-		value string
-		err   string
-	}{
-		{name: "nothing added to URL", value: ""},
-		{name: "something added to url", value: "test"},
-	}
-
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			req, err := http.NewRequest("GET", "localhost:8080/"+tc.value, nil)
-			if err != nil {
-				t.Fatalf("Could not create new request:%v\n", err)
-			}
-			rec := httptest.NewRecorder()
-			var o outPutT
-
-			o.message = "ok"
-			o.serverIP = "server"
-
-			answer := o.message + "Inbound from     : :\nResponse from    : " + o.serverIP
-
-			o.testPage(rec, req)
-			res := rec.Result()
-			defer res.Body.Close()
-
-			b, err := ioutil.ReadAll(res.Body)
-			if err != nil {
-				t.Fatalf("Could not read response: %v\n", err)
-			}
-			if string(b) != answer {
-				t.Errorf("Got wrong response. Expected:\n%s\nGot\n%s\n", answer, string(b))
-			}
-
-			if tc.err != "" {
-				if res.StatusCode != http.StatusBadRequest {
-					t.Errorf("Expected status bad request, got:\n%v\n", res.StatusCode)
-				}
-				if msg := string(bytes.TrimSpace(b)); msg != tc.err {
-					t.Errorf("Expected message %q, got %q\n", tc.err, msg)
-				}
-				return
-			}
-
-			if res.StatusCode != http.StatusOK {
-				t.Errorf("Expected status OK, got: %v\n", res.StatusCode)
-			}
-		})
-	}
-}
-
 func TestGetPrivateIP(t *testing.T) {
-	var o outPutT
+	const testFunc = "getPrivateIP..."
+	fmt.Printf("Testing: %s\n", testFunc)
 
+	var o outPutT
 	const local = "127.0.0.1"
 
 	tt := []struct {
@@ -97,6 +43,33 @@ func TestGetPrivateIP(t *testing.T) {
 			}
 			if !tc.local && ip[0] == local {
 				t.Fatalf("Expected non loopback IP, got %s\n", ip[0])
+			}
+		})
+	}
+}
+
+func TestGetMode(t *testing.T) {
+	const testFunc = "getMode..."
+	fmt.Printf("Testing: %s\n", testFunc)
+
+	tt := []struct {
+		name     string
+		lastMode string
+		lastEnum modeT
+	}{
+		{name: "lastMode: clientSP", lastMode: "clientSP", lastEnum: clientSP},
+		{name: "lastMode: clientComp", lastMode: "clientComp", lastEnum: clientComp},
+		{name: "lastMode: clientIOT", lastMode: "clientIOT", lastEnum: clientIOT},
+		{name: "lastMode: ctrlLite", lastMode: "ctrlLite", lastEnum: ctrlLite},
+		{name: "lastMode: ctrlPro", lastMode: "ctrlPro", lastEnum: ctrlPro},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+
+			mode := getMode(tc.lastMode)
+			if mode != tc.lastEnum {
+				t.Fatalf("Expected %v, got %v\n", tc.lastEnum, mode)
 			}
 		})
 	}

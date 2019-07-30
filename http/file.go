@@ -63,12 +63,12 @@ func LoadAppList() ([]AppListT, error) {
 }
 */
 
-func (a appListT) SaveAppList() {
+func (al appListT) SaveAppList() {
 	var temp appInfoT
 	var out []appInfoT
 
-	for i := range a.list {
-		temp = a.list[i]
+	for i := range al {
+		temp = al[i]
 		out = append(out, temp)
 	}
 	outBytes, err := json.MarshalIndent(out, "", "	")
