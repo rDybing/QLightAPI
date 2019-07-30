@@ -167,7 +167,6 @@ func (al appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 				fmt.Fprintf(w, "NEW")
 			}
 		}
-		fmt.Printf("Public IP: %s | PrivateIP: %s", aTemp.LastPublicIP, aTemp.LastPrivateIP)
 	}
 }
 

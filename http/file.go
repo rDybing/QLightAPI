@@ -82,7 +82,7 @@ func (al appListT) SaveAppList() {
 	} else {
 		if outJSON != "null" {
 			fmt.Fprintf(f, outJSON)
-			fmt.Println(outJSON)
+			//fmt.Println(outJSON)
 		} else {
 			fmt.Println("No data in AppList to save")
 		}
