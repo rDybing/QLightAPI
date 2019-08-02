@@ -12,6 +12,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	api "github.com/rDybing/qlightAPI/http"
 )
@@ -22,6 +23,7 @@ func main() {
 
 	go api.InitAPI()
 
+	time.Sleep(time.Millisecond * 1000)
 	help()
 
 	for !quit {

@@ -8,9 +8,7 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/goji/httpauth"
@@ -35,12 +33,15 @@ type configT struct {
 	Local     bool
 	AuthID    string
 	AuthKey   string
+	serverIP  string
 }
 
-type outPutT struct {
-	message  string
-	clientIP string
-	serverIP string
+type stateT struct {
+	welcomeHash string
+}
+
+type welcomeT struct {
+	Msg []string
 }
 
 type appInfoT struct {
@@ -63,18 +64,27 @@ type appListT map[string]appInfoT
 // InitAPI sets up the endpoints and spins up the API server
 func InitAPI() {
 	var config configT
-	var out outPutT
+	var state stateT
 	var appList appListT
+	var welcome welcomeT
+
 	appList = make(map[string]appInfoT)
 
 	tlsOK := config.loadConfig()
-	out.getServerIP(config.Local, tlsOK)
+	config.getServerIP(tlsOK)
+
+	if !welcome.loadWelcome() {
+		fmt.Println("No welcome messages loaded")
+	}
+
+	state.welcomeHash = welcome.hashMessages()
+	fmt.Printf("welcome Hash: %s\n", state.welcomeHash)
 
 	router := mux.NewRouter()
 
 	server := &http.Server{
 		Handler:      router,
-		Addr:         out.serverIP,
+		Addr:         config.serverIP,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
@@ -84,18 +94,18 @@ func InitAPI() {
 
 	if tlsOK {
 		fmt.Println("TLS Certs loaded - running over https")
-		fmt.Printf("API    : %s\n", out.serverIP)
+		fmt.Printf("API    : %s\n", config.serverIP)
 		log.Fatal(server.ListenAndServeTLS(config.FullChain, config.PrivKey))
 	} else {
 		fmt.Println("No TLS Certs - running over http")
-		fmt.Printf("API    : %s\n", out.serverIP)
+		fmt.Printf("API    : %s\n", config.serverIP)
 		log.Fatal(server.ListenAndServe())
 	}
 }
 
-func (o *outPutT) getServerIP(local, tlsOK bool) {
+func (c *configT) getServerIP(tlsOK bool) {
 	var ip string
-	if !local {
+	if !c.Local {
 		conn, err := net.Dial("udp", "8.8.8.8:80")
 		defer conn.Close()
 		if err != nil {
@@ -112,7 +122,7 @@ func (o *outPutT) getServerIP(local, tlsOK bool) {
 	} else {
 		ip = "127.0.0.1:8080"
 	}
-	o.serverIP = ip
+	c.serverIP = ip
 }
 
 //************************************************* Post Calls *********************************************************
@@ -186,105 +196,4 @@ func postControllerIP(w http.ResponseWriter, r *http.Request) {
 		out = "ERROR:Could not parse host ID"
 	}
 	fmt.Fprintf(w, out)
-}
-
-//************************************************* Helpers ************************************************************
-
-func getMode(in string) modeT {
-	var out modeT
-
-	switch in {
-	case "clientSP":
-		out = clientSP
-	case "clientComp":
-		out = clientComp
-	case "clientIOT":
-		out = clientIOT
-	case "ctrlLite":
-		out = ctrlLite
-	case "ctrlPro":
-		out = ctrlPro
-	}
-	return out
-}
-
-func getHostIP(in uint16) string {
-	// TODO: Change to compare Client IP with Controller IP
-	var out string
-	/*
-		if hostIP, ok := activeGames[in]; ok {
-			out = hostIP
-		} else {
-			out = "N/A"
-		}
-	*/
-	return out
-}
-
-// GetVer returns current (major) version of server
-func GetVer() string {
-	return version
-}
-
-// CloseApp exits the app gracefully
-func CloseApp(msg string) {
-	fmt.Println(msg)
-	os.Exit(0)
-}
-
-//************************************************* Safety Measures ****************************************************
-
-func qualifyGET(w http.ResponseWriter, method string, str string) bool {
-	if method != "GET" {
-		http.Error(w, http.StatusText(405), 405)
-		fmt.Println("ERROR:not GET method")
-		return false
-	}
-	return qualifyQuery(w, str)
-}
-
-func qualifyPOST(w http.ResponseWriter, method string) bool {
-	if method != "POST" {
-		http.Error(w, http.StatusText(405), 405)
-		fmt.Println("ERROR:not POST method")
-		return false
-	}
-	return true
-}
-
-func qualifyPUT(w http.ResponseWriter, method string, str string) bool {
-	if method != "PUT" {
-		http.Error(w, http.StatusText(405), 405)
-		fmt.Println("ERROR:not POST method")
-		return false
-	}
-	return qualifyQuery(w, str)
-}
-
-func qualifyQuery(w http.ResponseWriter, in string) bool {
-	// prevent empty query string
-	if in == "" {
-		http.Error(w, http.StatusText(400), 400)
-		fmt.Println("ERROR:empty query")
-		return false
-	}
-	// set max chars limit
-	if len(in) > 255 {
-		http.Error(w, http.StatusText(400), 400)
-		fmt.Println("ERROR:query too long")
-		return false
-	}
-	// prevent SQL injection by disallowing apostrophe in query string
-	if strings.Index(in, "'") != -1 {
-		http.Error(w, http.StatusText(400), 400)
-		fmt.Println("ERROR:Message contain illegal character!")
-		return false
-	}
-	// prevent file-structure traversing
-	if strings.Index(in, "/") != -1 {
-		http.Error(w, http.StatusText(400), 400)
-		fmt.Println("ERROR:Message contain illegal character!")
-		return false
-	}
-	return true
 }

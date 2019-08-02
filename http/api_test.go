@@ -10,7 +10,7 @@ func TestGetServerIP(t *testing.T) {
 	const testFunc = "getServerIP..."
 	fmt.Printf("Testing: %s\n", testFunc)
 
-	var o outPutT
+	var c configT
 	const local = "127.0.0.1"
 
 	tt := []struct {
@@ -33,8 +33,9 @@ func TestGetServerIP(t *testing.T) {
 			if tc.local {
 				port = "8080"
 			}
-			o.getServerIP(tc.local, tc.tlsOK)
-			ip := strings.Split(o.serverIP, ":")
+			c.Local = tc.local
+			c.getServerIP(tc.tlsOK)
+			ip := strings.Split(c.serverIP, ":")
 			if ip[1] != port {
 				t.Fatalf("Expected port %s, got %s\n", port, ip[1])
 			}

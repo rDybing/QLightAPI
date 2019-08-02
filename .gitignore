@@ -2,6 +2,6 @@
 qlight
 *.exe
 
-# no config files
+# no config or data files
 *.json
 
