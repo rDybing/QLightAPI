@@ -6,8 +6,8 @@ import (
 	"testing"
 )
 
-func TestGetPrivateIP(t *testing.T) {
-	const testFunc = "getPrivateIP..."
+func TestGetServerIP(t *testing.T) {
+	const testFunc = "getServerIP..."
 	fmt.Printf("Testing: %s\n", testFunc)
 
 	var o outPutT
@@ -33,7 +33,7 @@ func TestGetPrivateIP(t *testing.T) {
 			if tc.local {
 				port = "8080"
 			}
-			o.getPrivateIP(tc.local, tc.tlsOK)
+			o.getServerIP(tc.local, tc.tlsOK)
 			ip := strings.Split(o.serverIP, ":")
 			if ip[1] != port {
 				t.Fatalf("Expected port %s, got %s\n", port, ip[1])

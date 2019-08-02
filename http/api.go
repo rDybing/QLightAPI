@@ -68,7 +68,7 @@ func InitAPI() {
 	appList = make(map[string]appInfoT)
 
 	tlsOK := config.loadConfig()
-	out.getPrivateIP(config.Local, tlsOK)
+	out.getServerIP(config.Local, tlsOK)
 
 	router := mux.NewRouter()
 
@@ -93,7 +93,7 @@ func InitAPI() {
 	}
 }
 
-func (o *outPutT) getPrivateIP(local, tlsOK bool) {
+func (o *outPutT) getServerIP(local, tlsOK bool) {
 	var ip string
 	if !local {
 		conn, err := net.Dial("udp", "8.8.8.8:80")

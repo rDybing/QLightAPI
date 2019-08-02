@@ -38,9 +38,9 @@ func main() {
 
 func help() {
 	ver := api.GetVer()
-	fmt.Println("---------------------")
+	fmt.Println("-----------------------")
 	fmt.Printf("--  qliteAPI %s  --\n", ver)
-	fmt.Println("---------------------")
+	fmt.Println("-----------------------")
 	fmt.Println("Available Commands:")
 	fmt.Println(" - help        | list of commands")
 	fmt.Println(" - quit        | exit this application")
