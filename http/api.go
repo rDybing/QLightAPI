@@ -37,10 +37,6 @@ type configT struct {
 	serverIP  string
 }
 
-type stateT struct {
-	welcomeHash string
-}
-
 type welcomeT struct {
 	Msg []string
 }
@@ -74,7 +70,6 @@ var appList appListT
 // InitAPI sets up the endpoints and spins up the API server
 func InitAPI() {
 	var config configT
-	var state stateT
 	var welcome welcomeT
 
 	appList = make(map[string]appInfoT)
@@ -85,7 +80,6 @@ func InitAPI() {
 	if !welcome.loadWelcome() {
 		fmt.Println("No welcome messages loaded")
 	}
-	state.welcomeHash = welcome.hashMessages()
 
 	router := mux.NewRouter()
 
