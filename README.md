@@ -22,11 +22,11 @@ Contains the following non-standard libraries:
 
 **Contact:**
 
-location   | name/handle
------------|---------
-github:    | rDybing
-Linked In: | Roy Dybing
-MeWe:      | Roy Dybing
+location   | name/handle | checks
+-----------|-------------|--------
+github:    | rDybing     | often
+Linked In: | Roy Dybing  | monthly
+MeWe:      | Roy Dybing  | weekly
 
 ---
 

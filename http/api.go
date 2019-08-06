@@ -6,6 +6,7 @@ import (
 	"hash"
 	"io"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
 	"strconv"
@@ -59,13 +60,21 @@ type appInfoT struct {
 	LastMode      modeT
 }
 
+type loggerT struct {
+	Date     string
+	Function string
+	AppID    string
+	Status   string
+}
+
 type appListT map[string]appInfoT
+
+var appList appListT
 
 // InitAPI sets up the endpoints and spins up the API server
 func InitAPI() {
 	var config configT
 	var state stateT
-	var appList appListT
 	var welcome welcomeT
 
 	appList = make(map[string]appInfoT)
@@ -76,9 +85,7 @@ func InitAPI() {
 	if !welcome.loadWelcome() {
 		fmt.Println("No welcome messages loaded")
 	}
-
 	state.welcomeHash = welcome.hashMessages()
-	fmt.Printf("welcome Hash: %s\n", state.welcomeHash)
 
 	router := mux.NewRouter()
 
@@ -91,6 +98,7 @@ func InitAPI() {
 
 	router.Handle("/postAppInfo", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(appList.postAppInfo)))
 	router.Handle("/postControllerIP", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(postControllerIP)))
+	router.Handle("/getWelcome", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(welcome.getWelcome)))
 
 	if tlsOK {
 		fmt.Println("TLS Certs loaded - running over https")
@@ -163,8 +171,7 @@ func (al appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 				aTemp.Logins++
 				aTemp.LastMode = getMode(modeTemp)
 				al[hash] = aTemp
-				status := "OK"
-				fmt.Fprintf(w, status)
+				fmt.Fprintf(w, "OK:Updated Entry")
 			} else {
 				aTemp.FirstLogin = t.UTC().Format("2006-01-02 15:04:05")
 				aTemp.Logins = 1
@@ -174,14 +181,14 @@ func (al appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 				// append new entry to file
 				go al.SaveAppList()
 				// return new registration Created OK
-				fmt.Fprintf(w, "NEW")
+				fmt.Fprintf(w, "OK:New Entry")
 			}
 		}
 	}
 }
 
 func postControllerIP(w http.ResponseWriter, r *http.Request) {
-	loc := "getLocalIP"
+	loc := "postControllerIP"
 	fmt.Printf("package: api			func: %s\n", loc)
 
 	var out string
@@ -191,9 +198,34 @@ func postControllerIP(w http.ResponseWriter, r *http.Request) {
 	if qualifyGET(w, method, hostID) {
 		hostInt, _ := strconv.Atoi(hostID)
 		hostUint := uint16(hostInt)
-		out = getHostIP(hostUint)
+		out = "OK:" + getHostIP(hostUint)
 	} else {
 		out = "ERROR:Could not parse host ID"
+	}
+	fmt.Fprintf(w, out)
+}
+
+//************************************************* Get Calls **********************************************************
+
+func (welcome welcomeT) getWelcome(w http.ResponseWriter, r *http.Request) {
+	var l loggerT
+	loc := "getWelcome"
+	fmt.Printf("package: api			func: %s\n", loc)
+
+	var out string
+	method := r.Method
+
+	l.AppID = r.FormValue("appID")
+	if qualifyGET(w, method, l.AppID) {
+		// english only for now
+		rnd := rand.Intn(len(welcome.Msg))
+		out = "OK:" + welcome.Msg[rnd]
+	} else {
+		status := "ERROR:Could not parse appID"
+		l.Function = loc
+		l.Status = status
+		out = status
+		go l.logger()
 	}
 	fmt.Fprintf(w, out)
 }

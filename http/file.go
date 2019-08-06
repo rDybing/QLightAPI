@@ -94,7 +94,6 @@ func (w *welcomeT) loadWelcome() bool {
 		log.Printf("Failed to decode welcome messages JSON")
 		ok = false
 	}
-	fmt.Println(w)
 	return ok
 }
 
@@ -168,7 +167,6 @@ func (al appListT) SaveAppList() {
 	} else {
 		if outJSON != "null" {
 			fmt.Fprintf(f, outJSON)
-			//fmt.Println(outJSON)
 		} else {
 			fmt.Println("No data in AppList to save")
 		}

@@ -2,12 +2,15 @@ package api
 
 import (
 	"crypto/sha1"
+	"encoding/json"
 	"fmt"
 	"hash"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 //************************************************* Helpers ************************************************************
@@ -62,8 +65,23 @@ func GetVer() string {
 
 // CloseApp exits the app gracefully
 func CloseApp(msg string) {
+	fmt.Println("...saving appList")
+	appList.SaveAppList()
 	fmt.Println(msg)
 	os.Exit(0)
+}
+
+func (l *loggerT) logger() {
+	t := time.Now()
+	l.Date = t.UTC().Format("2006-01-02 15:04:05")
+
+	outBytes, err := json.MarshalIndent(l, "", "	")
+	if err != nil {
+		log.Printf("ERROR:Could not JSONify AppList, %v", err)
+	}
+	outJSON := string(outBytes[:])
+
+	log.Println(outJSON)
 }
 
 //************************************************* Safety Measures ****************************************************
