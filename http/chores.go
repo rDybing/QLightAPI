@@ -1,11 +1,8 @@
 package api
 
 import (
-	"crypto/sha1"
 	"encoding/json"
 	"fmt"
-	"hash"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -14,18 +11,6 @@ import (
 )
 
 //************************************************* Helpers ************************************************************
-
-func (w welcomeT) hashMessages() string {
-	var h hash.Hash
-	var toHash string
-
-	for i := range w.Msg {
-		toHash += w.Msg[i]
-	}
-	h = sha1.New()
-	io.WriteString(h, toHash)
-	return fmt.Sprintf("%x", h.Sum(nil))
-}
 
 func getMode(in string) modeT {
 	var out modeT
@@ -86,13 +71,15 @@ func (l *loggerT) logger() {
 
 //************************************************* Safety Measures ****************************************************
 
-func qualifyGET(w http.ResponseWriter, method string, str string) bool {
+func qualifyGET(w http.ResponseWriter, method string, str string) (string, bool) {
 	if method != "GET" {
 		http.Error(w, http.StatusText(405), 405)
-		fmt.Println("ERROR:not GET method")
-		return false
+		status := "ERROR:not GET method"
+		fmt.Println(status)
+		return status, false
 	}
-	return qualifyQuery(w, str)
+	status, ok := qualifyQuery(w, str)
+	return status, ok
 }
 
 func qualifyPOST(w http.ResponseWriter, method string) bool {
@@ -104,39 +91,45 @@ func qualifyPOST(w http.ResponseWriter, method string) bool {
 	return true
 }
 
-func qualifyPUT(w http.ResponseWriter, method string, str string) bool {
+func qualifyPUT(w http.ResponseWriter, method string, str string) (string, bool) {
 	if method != "PUT" {
 		http.Error(w, http.StatusText(405), 405)
-		fmt.Println("ERROR:not POST method")
-		return false
+		status := "ERROR:not POST method"
+		fmt.Println(status)
+		return status, false
 	}
-	return qualifyQuery(w, str)
+	status, ok := qualifyQuery(w, str)
+	return status, ok
 }
 
-func qualifyQuery(w http.ResponseWriter, in string) bool {
+func qualifyQuery(w http.ResponseWriter, in string) (string, bool) {
 	// prevent empty query string
 	if in == "" {
 		http.Error(w, http.StatusText(400), 400)
-		fmt.Println("ERROR:empty query")
-		return false
+		status := "ERROR:empty query"
+		fmt.Println(status)
+		return status, false
 	}
 	// set max chars limit
 	if len(in) > 255 {
 		http.Error(w, http.StatusText(400), 400)
-		fmt.Println("ERROR:query too long")
-		return false
+		status := "ERROR:query too long"
+		fmt.Println(status)
+		return status, false
 	}
 	// prevent SQL injection by disallowing apostrophe in query string
 	if strings.Index(in, "'") != -1 {
 		http.Error(w, http.StatusText(400), 400)
-		fmt.Println("ERROR:Message contain illegal character!")
-		return false
+		status := "ERROR:Message contain illegal character!"
+		fmt.Println(status)
+		return status, false
 	}
 	// prevent file-structure traversing
 	if strings.Index(in, "/") != -1 {
 		http.Error(w, http.StatusText(400), 400)
-		fmt.Println("ERROR:Message contain illegal character!")
-		return false
+		status := "ERROR:Message contain illegal character!"
+		fmt.Println()
+		return status, false
 	}
-	return true
+	return "", true
 }

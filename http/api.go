@@ -67,7 +67,11 @@ type appListT map[string]appInfoT
 
 var appList appListT
 
-// InitAPI sets up the endpoints and spins up the API server
+//************************************************* Server Startup *****************************************************
+
+// InitAPI sets up the endpoints and spins up the API server. Assuming TLS certificates are available, API will use
+// https on port 433 only (tlsOK is true). Should TLS certificates not be available, or config file sets server to
+// local, server will use http on port 80 (public) or 8080 (local).
 func InitAPI() {
 	var config configT
 	var welcome welcomeT
@@ -189,7 +193,7 @@ func postControllerIP(w http.ResponseWriter, r *http.Request) {
 	method := r.Method
 
 	hostID := r.FormValue("hostID")
-	if qualifyGET(w, method, hostID) {
+	if qualifyPOST(w, method) {
 		hostInt, _ := strconv.Atoi(hostID)
 		hostUint := uint16(hostInt)
 		out = "OK:" + getHostIP(hostUint)
@@ -210,12 +214,11 @@ func (welcome welcomeT) getWelcome(w http.ResponseWriter, r *http.Request) {
 	method := r.Method
 
 	l.AppID = r.FormValue("appID")
-	if qualifyGET(w, method, l.AppID) {
+	if status, ok := qualifyGET(w, method, l.AppID); ok {
 		// english only for now
 		rnd := rand.Intn(len(welcome.Msg))
 		out = "OK:" + welcome.Msg[rnd]
 	} else {
-		status := "ERROR:Could not parse appID"
 		l.Function = loc
 		l.Status = status
 		out = status
