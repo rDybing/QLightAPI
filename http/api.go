@@ -1,10 +1,7 @@
 package api
 
 import (
-	"crypto/sha1"
 	"fmt"
-	"hash"
-	"io"
 	"log"
 	"math/rand"
 	"net"
@@ -17,7 +14,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const version = "v0.1.0"
+const version = "v0.2.0"
 
 type modeT int
 
@@ -80,6 +77,9 @@ func InitAPI() {
 	var welcome welcomeT
 
 	appList = make(map[string]appInfoT)
+	appList.loadAppList()
+
+	fmt.Printf("App Entries in AppList: %d", len(appList))
 
 	tlsOK := config.loadConfig()
 	config.getServerIP(tlsOK)
@@ -140,8 +140,6 @@ func (al appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 	loc := "postAppInfo"
 	fmt.Printf("package: api			func: %s\n", loc)
 
-	var h hash.Hash
-	var hash string
 	var aTemp appInfoT
 	var modeTemp string
 
@@ -163,13 +161,9 @@ func (al appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 			aTemp.OS = r.FormValue("OS")
 			aTemp.Model = r.FormValue("Model")
 			modeTemp = r.FormValue("Mode")
-
-			h = sha1.New()
-			io.WriteString(h, aTemp.ID+aTemp.Name)
-			hash = fmt.Sprintf("%x", h.Sum(nil))
 			update := false
-			if _, found := al[hash]; found {
-				aTemp = al[hash]
+			if _, found := al[aTemp.ID]; found {
+				aTemp = al[aTemp.ID]
 				aTemp.LastLogin = t.UTC().Format("2006-01-02 15:04:05")
 				aTemp.Logins++
 				aTemp.LastMode = getMode(modeTemp)
@@ -181,7 +175,7 @@ func (al appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 				aTemp.LastMode = getMode(modeTemp)
 			}
 			wg.Add(1)
-			go al.transfer(hash, aTemp)
+			go al.transfer(aTemp)
 			wg.Wait()
 			guard.Lock()
 			go al.saveAppList()
@@ -207,13 +201,8 @@ func (al appListT) getServerIP(w http.ResponseWriter, r *http.Request) {
 	clientPrivateIP := r.FormValue("privateIP")
 	clientPublicIP := r.RemoteAddr
 
-	fmt.Println(clientPrivateIP)
-	fmt.Println(clientPublicIP)
-
 	pubIP := strings.Split(clientPublicIP, ":")
 	clientPublicIP = pubIP[0]
-
-	fmt.Println(clientPublicIP)
 
 	out := "ERROR:No LAN server found on IP\n" + clientPublicIP
 

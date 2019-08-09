@@ -18,23 +18,23 @@ func (c *configT) loadConfig() bool {
 	ok := true
 	f, err := os.Open(configFile)
 	if err != nil {
-		log.Printf("Failed to load config file - no https for you!\n%v\n", err)
+		log.Println("Failed to load config file - no https for you!")
 		ok = false
 	}
 	defer f.Close()
 
 	configJSON := json.NewDecoder(f)
 	if err = configJSON.Decode(&c); err != nil {
-		log.Printf("Failed to decode config JSON - no https for you!\n%v\n", err)
+		log.Println("Failed to decode config JSON - no https for you!")
 		ok = false
 	}
 	// get if tls certs exist on server
 	if _, err := os.Stat(c.FullChain); err != nil {
-		log.Printf("Failed to find FullChain cert - no https for you!\n%v\n", err)
+		log.Println("Failed to find FullChain cert - no https for you!")
 		ok = false
 	}
 	if _, err := os.Stat(c.PrivKey); err != nil {
-		log.Printf("Failed to find Private Key - no https for you!\n%v\n", err)
+		log.Println("Failed to find Private Key - no https for you!")
 		ok = false
 	}
 	return ok
@@ -46,43 +46,40 @@ func (w *welcomeT) loadWelcome() bool {
 	ok := true
 	f, err := os.Open(welcomeFile)
 	if err != nil {
-		log.Printf("Failed to load welcome messages file")
+		log.Println("Failed to load welcome messages file")
 		ok = false
 	}
 	defer f.Close()
 
 	stateJSON := json.NewDecoder(f)
 	if err = stateJSON.Decode(&w); err != nil {
-		log.Printf("Failed to decode welcome messages JSON")
+		log.Println("Failed to decode welcome messages JSON")
 		ok = false
 	}
 	return ok
 }
 
 //************************************************* AppsList ***********************************************************
-/*
-// LoadAppList Loads up file of state of aux-apps
-func LoadAppList() ([]AppListT, error) {
-	var AppList []AppListT
 
-	f, err := os.OpenFile(appListFile, os.O_RDONLY, 0666)
+func (al appListT) loadAppList() {
+	var appInfo []appInfoT
+
+	f, err := os.Open(appListFile)
 	if err != nil {
-		log.Printf("ERROR:No auxAppList file exist, %v\n", err)
-		return nil, err
+		log.Println("Failed to load appList file")
 	}
 	defer f.Close()
 
 	jsonRaw := json.NewDecoder(f)
-	if err := jsonRaw.Decode(&AppList); err != nil {
-		if err == io.EOF {
-			return nil, err
-		}
-		log.Printf("ERROR: Parsing AppList JSON, %v\n", err)
-		return nil, err
+	if err := jsonRaw.Decode(&appInfo); err != nil {
+		log.Println("Failed to decode appList JSON")
 	}
-	return AppList, nil
+	for i := range appInfo {
+		wg.Add(1)
+		go al.transfer(appInfo[i])
+		wg.Wait()
+	}
 }
-*/
 
 func (al appListT) saveAppList() {
 	var temp appInfoT
@@ -94,12 +91,13 @@ func (al appListT) saveAppList() {
 	}
 	outBytes, err := json.MarshalIndent(out, "", "	")
 	if err != nil {
-		log.Printf("ERROR:Could not JSONify AppList, %v", err)
+		log.Println("Failed to encode appList map")
 	}
 	outJSON := string(outBytes[:])
 	f, err := os.OpenFile(appListFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
+	defer f.Close()
 	if err != nil {
-		log.Printf("ERROR:Applist File is being very stubborn, %v\n", err)
+		log.Println("Failed to save appList file")
 	} else {
 		if outJSON != "null" {
 			fmt.Fprintf(f, outJSON)
@@ -107,5 +105,4 @@ func (al appListT) saveAppList() {
 			fmt.Println("No data in AppList to save")
 		}
 	}
-	defer f.Close()
 }

@@ -69,8 +69,8 @@ func (l *loggerT) logger() {
 	fmt.Println(outJSON)
 }
 
-func (al appListT) transfer(hash string, in appInfoT) {
-	al[hash] = in
+func (al appListT) transfer(ai appInfoT) {
+	al[ai.ID] = ai
 	wg.Done()
 }
 
