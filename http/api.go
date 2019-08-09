@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/goji/httpauth"
@@ -66,6 +67,8 @@ type loggerT struct {
 type appListT map[string]appInfoT
 
 var appList appListT
+var wg sync.WaitGroup
+var guard sync.Mutex
 
 //************************************************* Server Startup *****************************************************
 
@@ -162,25 +165,30 @@ func (al appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 			h = sha1.New()
 			io.WriteString(h, aTemp.ID+aTemp.Name)
 			hash = fmt.Sprintf("%x", h.Sum(nil))
-
+			update := false
 			if _, found := al[hash]; found {
 				aTemp = al[hash]
 				aTemp.LastLogin = t.UTC().Format("2006-01-02 15:04:05")
 				aTemp.Logins++
 				aTemp.LastMode = getMode(modeTemp)
-				al[hash] = aTemp
-				fmt.Fprintf(w, "OK:Updated Entry")
+				update = true
 			} else {
 				aTemp.FirstLogin = t.UTC().Format("2006-01-02 15:04:05")
 				aTemp.Logins = 1
 				aTemp.LastLogin = aTemp.FirstLogin
 				aTemp.LastMode = getMode(modeTemp)
-				al[hash] = aTemp
-				// append new entry to file
-				go al.SaveAppList()
-				// return new registration Created OK
-				fmt.Fprintf(w, "OK:New Entry")
 			}
+			wg.Add(1)
+			go al.transfer(hash, aTemp)
+			wg.Wait()
+			guard.Lock()
+			go al.saveAppList()
+			guard.Unlock()
+			msg := "New Entry"
+			if update {
+				msg = "Updated Entry"
+			}
+			fmt.Fprintf(w, "OK:%s", msg)
 		}
 	}
 }

@@ -51,7 +51,7 @@ func GetVer() string {
 // CloseApp exits the app gracefully
 func CloseApp(msg string) {
 	fmt.Println("...saving appList")
-	appList.SaveAppList()
+	appList.saveAppList()
 	fmt.Println(msg)
 	os.Exit(0)
 }
@@ -66,7 +66,12 @@ func (l *loggerT) logger() {
 	}
 	outJSON := string(outBytes[:])
 
-	log.Println(outJSON)
+	fmt.Println(outJSON)
+}
+
+func (al appListT) transfer(hash string, in appInfoT) {
+	al[hash] = in
+	wg.Done()
 }
 
 //************************************************* Safety Measures ****************************************************

@@ -84,7 +84,7 @@ func LoadAppList() ([]AppListT, error) {
 }
 */
 
-func (al appListT) SaveAppList() {
+func (al appListT) saveAppList() {
 	var temp appInfoT
 	var out []appInfoT
 
