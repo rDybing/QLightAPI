@@ -9,7 +9,7 @@ import (
 	"math/rand"
 	"net"
 	"net/http"
-	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -98,7 +98,7 @@ func InitAPI() {
 	}
 
 	router.Handle("/postAppInfo", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(appList.postAppInfo)))
-	router.Handle("/postControllerIP", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(postControllerIP)))
+	router.Handle("/getServerIP", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(appList.getServerIP)))
 	router.Handle("/getWelcome", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(welcome.getWelcome)))
 
 	if tlsOK {
@@ -193,25 +193,50 @@ func (al appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func postControllerIP(w http.ResponseWriter, r *http.Request) {
+//************************************************* Get Calls **********************************************************
+
+func (al appListT) getServerIP(w http.ResponseWriter, r *http.Request) {
+	var l loggerT
 	loc := "postControllerIP"
 	fmt.Printf("package: api			func: %s\n", loc)
 
-	var out string
 	method := r.Method
 
-	hostID := r.FormValue("hostID")
-	if qualifyPOST(w, method) {
-		hostInt, _ := strconv.Atoi(hostID)
-		hostUint := uint16(hostInt)
-		out = "OK:" + getHostIP(hostUint)
+	clientPrivateIP := r.FormValue("privateIP")
+	clientPublicIP := r.RemoteAddr
+
+	pubIP := strings.Split(clientPublicIP, ":")
+	clientPublicIP = pubIP[0]
+
+	out := "ERROR:No LAN server found on IP\n" + clientPublicIP
+
+	found := false
+	if status, ok := qualifyGET(w, method, clientPrivateIP); ok {
+		for i := range al {
+			if al[i].LastPublicIP == clientPublicIP {
+				clientPIP := strings.Split(clientPrivateIP, ".")
+				clientPrivateIP = fmt.Sprintf("%s.%s.%s", clientPIP[0], clientPIP[1], clientPIP[2])
+				serverPrivateIPFull := al[i].LastPrivateIP
+				serverPIP := strings.Split(serverPrivateIPFull, ".")
+				serverPrivateIPComp := fmt.Sprintf("%s.%s.%s", serverPIP[0], serverPIP[1], serverPIP[2])
+				if clientPrivateIP == serverPrivateIPComp {
+					found = true
+					out = "OK:" + serverPrivateIPFull
+					break
+				}
+			}
+		}
+		if !found {
+			out = "ERROR:Not Found"
+		}
 	} else {
-		out = "ERROR:Could not parse host ID"
+		l.Function = loc
+		l.Status = status
+		out = status
+		go l.logger()
 	}
 	fmt.Fprintf(w, out)
 }
-
-//************************************************* Get Calls **********************************************************
 
 func (welcome welcomeT) getWelcome(w http.ResponseWriter, r *http.Request) {
 	var l loggerT
