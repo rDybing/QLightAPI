@@ -97,7 +97,7 @@ func (al appListT) saveAppList() {
 		log.Printf("ERROR:Could not JSONify AppList, %v", err)
 	}
 	outJSON := string(outBytes[:])
-	f, err := os.OpenFile(appListFile, os.O_TRUNC|os.O_WRONLY|os.O_CREATE, 0666)
+	f, err := os.OpenFile(appListFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		log.Printf("ERROR:Applist File is being very stubborn, %v\n", err)
 	} else {

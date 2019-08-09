@@ -156,7 +156,9 @@ func (al appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 			aTemp.Name = r.FormValue("Name")
 			aTemp.WH = r.FormValue("WH")
 			aTemp.Aspect = r.FormValue("Aspect")
-			aTemp.LastPublicIP = r.RemoteAddr
+			publicIP := r.RemoteAddr
+			pubIP := strings.Split(publicIP, ":")
+			aTemp.LastPublicIP = pubIP[0]
 			aTemp.LastPrivateIP = r.FormValue("PrivateIP")
 			aTemp.OS = r.FormValue("OS")
 			aTemp.Model = r.FormValue("Model")
@@ -197,7 +199,7 @@ func (al appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 
 func (al appListT) getServerIP(w http.ResponseWriter, r *http.Request) {
 	var l loggerT
-	loc := "postControllerIP"
+	loc := "getServerIP"
 	fmt.Printf("package: api			func: %s\n", loc)
 
 	method := r.Method
@@ -205,8 +207,13 @@ func (al appListT) getServerIP(w http.ResponseWriter, r *http.Request) {
 	clientPrivateIP := r.FormValue("privateIP")
 	clientPublicIP := r.RemoteAddr
 
+	fmt.Println(clientPrivateIP)
+	fmt.Println(clientPublicIP)
+
 	pubIP := strings.Split(clientPublicIP, ":")
 	clientPublicIP = pubIP[0]
+
+	fmt.Println(clientPublicIP)
 
 	out := "ERROR:No LAN server found on IP\n" + clientPublicIP
 
