@@ -4,14 +4,12 @@ API to handle requests from qlight client and controller(s).
 
 All endpoints requiring client or controller API ID and Key in header.
 
-- [ip]/post/postAppInfo/ - Registers appID with the API, collects some basic 
+- [ip]/postAppInfo/ - Registers appID with the API, collects some basic 
 information of client/controller such as device OS and attributes such as 
 display size.
-- [ip]/post/controllerIP/ - Adds controllers public facing IP to an in-memory 
-list.
-- [ip]/get/controllerIP/ - Returns nearest controller (if any) based upon IP
+- [ip]/getServerIP/ - Returns nearest controller (if any) based upon IP
 of clients IP. Assumes same public-facing IP of client and controller.
-- [ip]/get/message/ - downloads a (new) list of opening messages if available.
+- [ip]/getWelcome/ - downloads a random opening messages.
 
 ## Build
 
