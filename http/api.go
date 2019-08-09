@@ -79,7 +79,7 @@ func InitAPI() {
 	appList = make(map[string]appInfoT)
 	appList.loadAppList()
 
-	fmt.Printf("App Entries in AppList: %d", len(appList))
+	fmt.Printf("App Entries in AppList: %d\n", len(appList))
 
 	tlsOK := config.loadConfig()
 	config.getServerIP(tlsOK)

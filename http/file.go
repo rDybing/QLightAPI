@@ -94,7 +94,7 @@ func (al appListT) saveAppList() {
 		log.Println("Failed to encode appList map")
 	}
 	outJSON := string(outBytes[:])
-	f, err := os.OpenFile(appListFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
+	f, err := os.OpenFile(appListFile, os.O_TRUNC|os.O_WRONLY|os.O_CREATE, 0666)
 	defer f.Close()
 	if err != nil {
 		log.Println("Failed to save appList file")
