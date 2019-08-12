@@ -16,6 +16,7 @@ import (
 const version = "v0.2.0"
 
 var appList appListT
+var welcome welcomeT
 
 //************************************************* Server Startup *****************************************************
 
@@ -24,7 +25,6 @@ var appList appListT
 // local, server will use http on port 80 (public) or 8080 (local).
 func InitAPI() {
 	var config configT
-	var welcome welcomeT
 
 	appList = make(map[string]appInfoT)
 	appList.loadAppList()

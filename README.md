@@ -7,8 +7,10 @@ All endpoints requiring client or controller API ID and Key in header.
 - [ip]/postAppInfo/ - Registers appID with the API, collects some basic 
 information of client/controller such as device OS and attributes such as 
 display size.
-- [ip]/getServerIP/ - Returns nearest controller (if any) based upon IP
-of clients IP. Assumes same public-facing IP of client and controller.
+- [ip]/postAppUpdate/ - Updates app information such as Name given the client
+and mode client is currently in.
+- [ip]/getServerIP/ - Returns nearest controller (if any) based upon IP of 
+clients IP. Assumes same public-facing IP of client and controller.
 - [ip]/getWelcome/ - downloads a random opening messages.
 
 ## Build

@@ -14,7 +14,29 @@ import (
 var wg sync.WaitGroup
 var guard sync.Mutex
 
-//************************************************* Helpers ************************************************************
+//************************************************* Public Helpers *****************************************************
+
+// UpdateWelcome reloads the welcomeFile in order to renew without restarting the API-app
+func UpdateWelcome() {
+	fmt.Println("Reloading welcome messages")
+	welcome.loadWelcome()
+	fmt.Printf("Messages loaded: %d\n", len(welcome.Msg))
+}
+
+// GetVer returns current (major) version of API-app
+func GetVer() string {
+	return version
+}
+
+// CloseApp exits the API-app gracefully and saves current in-memory appList
+func CloseApp(msg string) {
+	fmt.Println("...saving appList")
+	appList.saveAppList()
+	fmt.Println(msg)
+	os.Exit(0)
+}
+
+//************************************************* Private Helpers ****************************************************
 
 func getMode(in string) modeT {
 	var out modeT
@@ -49,19 +71,6 @@ func getHostIP(in uint16) string {
 		}
 	*/
 	return out
-}
-
-// GetVer returns current (major) version of server
-func GetVer() string {
-	return version
-}
-
-// CloseApp exits the app gracefully
-func CloseApp(msg string) {
-	fmt.Println("...saving appList")
-	appList.saveAppList()
-	fmt.Println(msg)
-	os.Exit(0)
 }
 
 func (l *loggerT) logger() {

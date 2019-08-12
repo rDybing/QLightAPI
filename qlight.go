@@ -31,6 +31,8 @@ func main() {
 		switch input {
 		case "help":
 			help()
+		case "welcome":
+			api.UpdateWelcome()
 		case "quit":
 			quit = true
 		}
@@ -40,11 +42,12 @@ func main() {
 
 func help() {
 	ver := api.GetVer()
-	fmt.Println("-----------------------")
-	fmt.Printf("--  qliteAPI %s  --\n", ver)
-	fmt.Println("-----------------------")
+	fmt.Println("------------------------")
+	fmt.Printf("--  qlightAPI %s  --\n", ver)
+	fmt.Println("------------------------")
 	fmt.Println("Available Commands:")
 	fmt.Println(" - help        | list of commands")
+	fmt.Println(" - welcome     | reloads welcomeFile")
 	fmt.Println(" - quit        | exit this application")
 }
 
