@@ -30,6 +30,10 @@ func getMode(in string) modeT {
 		out = ctrlLite
 	case "ctrlPro":
 		out = ctrlPro
+	case "noneSP":
+		out = noneSP
+	case "noneComp":
+		out = noneComp
 	}
 	return out
 }
