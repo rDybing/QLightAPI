@@ -8,6 +8,8 @@ const (
 	clientIOT
 	ctrlLite
 	ctrlPro
+	noneSP
+	noneComp
 )
 
 type configT struct {
