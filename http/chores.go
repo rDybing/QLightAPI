@@ -116,7 +116,7 @@ func qualifyPOST(w http.ResponseWriter, method string) bool {
 func qualifyPUT(w http.ResponseWriter, method string, str string) (string, bool) {
 	if method != "PUT" {
 		http.Error(w, http.StatusText(405), 405)
-		status := "ERROR:not POST method"
+		status := "ERROR:not PUT method"
 		fmt.Println(status)
 		return status, false
 	}
