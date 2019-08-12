@@ -48,7 +48,7 @@ func InitAPI() {
 	}
 
 	router.Handle("/postAppInfo", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(appList.postAppInfo)))
-	router.Handle("/putAppUpdate", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(appList.putAppUpdate)))
+	router.Handle("/postAppUpdate", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(appList.postAppUpdate)))
 	router.Handle("/getServerIP", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(appList.getServerIP)))
 	router.Handle("/getWelcome", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(welcome.getWelcome)))
 
@@ -137,46 +137,46 @@ func (al appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//************************************************* Put Calls *********************************************************
-
-func (al appListT) putAppUpdate(w http.ResponseWriter, r *http.Request) {
-	loc := "putUpdateApp"
+func (al appListT) postAppUpdate(w http.ResponseWriter, r *http.Request) {
+	loc := "postUpdateApp"
 	fmt.Printf("package: api			func: %s\n", loc)
 
 	var l loggerT
 	var aTemp appInfoT
 	var out string
+	var log bool
 
 	t := time.Now()
 	method := r.Method
 
-	if err := r.ParseForm(); err != nil {
-		l.Function = loc
-		l.Status = "ERROR:Wrongdata format"
-		out = l.Status
-		go l.logger()
-	} else {
-		idTemp := r.FormValue("ID")
-		nameTemp := r.FormValue("Name")
-		modeTemp := r.FormValue("Mode")
-		checkTemp := idTemp + nameTemp + modeTemp
-		if status, ok := qualifyPUT(w, method, checkTemp); ok {
-			if _, found := al[aTemp.ID]; found {
-				aTemp = al[aTemp.ID]
+	if qualifyPOST(w, method) {
+		if err := r.ParseForm(); err != nil {
+			log = true
+			out = "ERROR:Wrongdata format"
+		} else {
+			idTemp := r.FormValue("ID")
+			nameTemp := r.FormValue("Name")
+			modeTemp := r.FormValue("Mode")
+			if _, found := al[idTemp]; found {
+				aTemp = al[idTemp]
 				aTemp.LastUpdate = t.UTC().Format("2006-01-02 15:04:05")
 				aTemp.Name = nameTemp
 				aTemp.LastMode = getMode(modeTemp)
+				al.transferAndSave(aTemp)
+				out = "OK:Updated Entry"
+			} else {
+				log = true
+				out = "ERROR:No Entry Found"
 			}
-			al.transferAndSave(aTemp)
-			out = "OK:Updated Entry"
-		} else {
-			l.Function = loc
-			l.Status = status
-			out = status
-			go l.logger()
 		}
 	}
-	fmt.Fprintf(w, out)
+	if log {
+		l.Function = loc
+		l.Status = out
+		go l.logger()
+	} else {
+		fmt.Fprintf(w, out)
+	}
 }
 
 //************************************************* Get Calls **********************************************************
