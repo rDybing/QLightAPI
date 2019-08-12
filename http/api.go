@@ -7,7 +7,6 @@ import (
 	"net"
 	"net/http"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/goji/httpauth"
@@ -16,56 +15,7 @@ import (
 
 const version = "v0.2.0"
 
-type modeT int
-
-const (
-	clientSP modeT = iota
-	clientComp
-	clientIOT
-	ctrlLite
-	ctrlPro
-)
-
-type configT struct {
-	FullChain string
-	PrivKey   string
-	Local     bool
-	AuthID    string
-	AuthKey   string
-	serverIP  string
-}
-
-type welcomeT struct {
-	Msg []string
-}
-
-type appInfoT struct {
-	ID            string
-	Name          string
-	WH            string
-	Aspect        string
-	LastPublicIP  string
-	LastPrivateIP string
-	OS            string
-	Model         string
-	Logins        int
-	FirstLogin    string
-	LastLogin     string
-	LastMode      modeT
-}
-
-type loggerT struct {
-	Date     string
-	Function string
-	AppID    string
-	Status   string
-}
-
-type appListT map[string]appInfoT
-
 var appList appListT
-var wg sync.WaitGroup
-var guard sync.Mutex
 
 //************************************************* Server Startup *****************************************************
 
@@ -98,6 +48,7 @@ func InitAPI() {
 	}
 
 	router.Handle("/postAppInfo", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(appList.postAppInfo)))
+	router.Handle("/putAppUpdate", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(appList.putAppUpdate)))
 	router.Handle("/getServerIP", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(appList.getServerIP)))
 	router.Handle("/getWelcome", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(welcome.getWelcome)))
 
@@ -165,6 +116,7 @@ func (al appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 			if _, found := al[aTemp.ID]; found {
 				aTemp = al[aTemp.ID]
 				aTemp.LastLogin = t.UTC().Format("2006-01-02 15:04:05")
+				aTemp.LastUpdate = aTemp.LastLogin
 				aTemp.Logins++
 				aTemp.LastMode = getMode(modeTemp)
 				update = true
@@ -172,14 +124,10 @@ func (al appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 				aTemp.FirstLogin = t.UTC().Format("2006-01-02 15:04:05")
 				aTemp.Logins = 1
 				aTemp.LastLogin = aTemp.FirstLogin
+				aTemp.LastUpdate = aTemp.LastLogin
 				aTemp.LastMode = getMode(modeTemp)
 			}
-			wg.Add(1)
-			go al.transfer(aTemp)
-			wg.Wait()
-			guard.Lock()
-			go al.saveAppList()
-			guard.Unlock()
+			al.transferAndSave(aTemp)
 			msg := "New Entry"
 			if update {
 				msg = "Updated Entry"
@@ -187,6 +135,48 @@ func (al appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "OK:%s", msg)
 		}
 	}
+}
+
+//************************************************* Put Calls *********************************************************
+
+func (al appListT) putAppUpdate(w http.ResponseWriter, r *http.Request) {
+	loc := "putUpdateApp"
+	fmt.Printf("package: api			func: %s\n", loc)
+
+	var l loggerT
+	var aTemp appInfoT
+	var out string
+
+	t := time.Now()
+	method := r.Method
+
+	if err := r.ParseForm(); err != nil {
+		l.Function = loc
+		l.Status = "ERROR:Wrongdata format"
+		out = l.Status
+		go l.logger()
+	} else {
+		idTemp := r.FormValue("ID")
+		nameTemp := r.FormValue("Name")
+		modeTemp := r.FormValue("Mode")
+		checkTemp := idTemp + nameTemp + modeTemp
+		if status, ok := qualifyPUT(w, method, checkTemp); ok {
+			if _, found := al[aTemp.ID]; found {
+				aTemp = al[aTemp.ID]
+				aTemp.LastUpdate = t.UTC().Format("2006-01-02 15:04:05")
+				aTemp.Name = nameTemp
+				aTemp.LastMode = getMode(modeTemp)
+			}
+			al.transferAndSave(aTemp)
+			out = "OK:Updated Entry"
+		} else {
+			l.Function = loc
+			l.Status = status
+			out = status
+			go l.logger()
+		}
+	}
+	fmt.Fprintf(w, out)
 }
 
 //************************************************* Get Calls **********************************************************

@@ -7,8 +7,12 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
+
+var wg sync.WaitGroup
+var guard sync.Mutex
 
 //************************************************* Helpers ************************************************************
 
@@ -67,6 +71,15 @@ func (l *loggerT) logger() {
 	outJSON := string(outBytes[:])
 
 	fmt.Println(outJSON)
+}
+
+func (al appListT) transferAndSave(ai appInfoT) {
+	wg.Add(1)
+	go al.transfer(ai)
+	wg.Wait()
+	guard.Lock()
+	go al.saveAppList()
+	guard.Unlock()
 }
 
 func (al appListT) transfer(ai appInfoT) {
