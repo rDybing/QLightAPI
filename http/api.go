@@ -188,7 +188,7 @@ func (al appListT) getServerIP(w http.ResponseWriter, r *http.Request) {
 
 	method := r.Method
 
-	l.AppID = r.FormValue("AppIP")
+	l.AppID = r.FormValue("ID")
 	clientPublicIP := r.RemoteAddr
 
 	var clientPrivateIP string
