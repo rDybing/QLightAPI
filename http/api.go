@@ -188,16 +188,21 @@ func (al appListT) getServerIP(w http.ResponseWriter, r *http.Request) {
 
 	method := r.Method
 
-	clientPrivateIP := r.FormValue("privateIP")
+	l.AppID = r.FormValue("AppIP")
 	clientPublicIP := r.RemoteAddr
+
+	var clientPrivateIP string
+	if _, found := al[l.AppID]; found {
+		clientPrivateIP = al[l.AppID].LastPrivateIP
+	}
 
 	pubIP := strings.Split(clientPublicIP, ":")
 	clientPublicIP = pubIP[0]
 
 	out := "ERROR:No LAN server found on IP\n" + clientPublicIP
-
 	found := false
-	if status, ok := qualifyGET(w, method, clientPrivateIP); ok {
+
+	if status, ok := qualifyGET(w, method, l.AppID); ok {
 		for i := range al {
 			if al[i].LastPublicIP == clientPublicIP {
 				clientPIP := strings.Split(clientPrivateIP, ".")
