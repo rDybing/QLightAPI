@@ -4,14 +4,48 @@ API to handle requests from qlight client and controller(s).
 
 All endpoints requiring client or controller API ID and Key in header.
 
-- [ip]/postAppInfo/ - Registers appID with the API, collects some basic 
+- **[ip]/postAppInfo/** - Registers appID with the API, collects some basic 
 information of client/controller such as device OS and attributes such as 
 display size.
-- [ip]/postAppUpdate/ - Updates app information such as Name given the client
+
+| Formvalue    | Description      |
+|--------------|------------------|
+| ID           | AppID            |
+| Name         | Name of client   |
+| WH           | Width and Height |
+| Aspect       | Display Ratio    |
+| PrivateIP    | LAN IP           |
+| OS           | Client OS        |
+| Model	Client | Model            |
+| Mode         | Client Mode      |
+
+- **[ip]/postAppUpdate/** - Updates app information such as Name given the client
 and mode client is currently in.
-- [ip]/getServerIP/ - Returns nearest controller (if any) based upon IP of 
-clients IP. Assumes same public-facing IP of client and controller.
-- [ip]/getWelcome/ - downloads a random opening messages.
+
+| Formvalue    | Description      |
+|--------------|------------------|
+| ID           | AppID            |
+| Name         | Name of client   |
+| Mode         | Client Mode      |
+
+- **[ip]/getServerIP/** - Returns nearest controller (if any) based upon Private 
+and Public IP of clients IP. Assumes same public-facing IP of client and 
+controller.
+
+| Formvalue    | Description      |
+|--------------|------------------|
+| PrivateIP    | LAN IP           |
+
+- **[ip]/getWelcome/** - returns a random opening messages.
+
+| Formvalue    | Description      |
+|--------------|------------------|
+| ID           | AppID            |
+
+**Error Codes:**
+
+- 400: Illegal query values. For instance empty query or special characters
+- 405: Wrong query Method
 
 ## Build
 

@@ -13,7 +13,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const version = "v0.2.0"
+const version = "v0.3.0"
 
 var appList appListT
 var welcome welcomeT
@@ -232,7 +232,7 @@ func (welcome welcomeT) getWelcome(w http.ResponseWriter, r *http.Request) {
 	var out string
 	method := r.Method
 
-	l.AppID = r.FormValue("appID")
+	l.AppID = r.FormValue("ID")
 	if status, ok := qualifyGET(w, method, l.AppID); ok {
 		// english only for now
 		rnd := rand.Intn(len(welcome.Msg))
