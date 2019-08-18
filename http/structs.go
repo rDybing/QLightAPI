@@ -41,6 +41,11 @@ type appInfoT struct {
 	LastMode      modeT
 }
 
+type ipT struct {
+	private string
+	public  string
+}
+
 type loggerT struct {
 	Date     string
 	Function string

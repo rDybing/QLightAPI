@@ -60,17 +60,20 @@ func getMode(in string) modeT {
 	return out
 }
 
-func getHostIP(in uint16) string {
-	// TODO: Change to compare Client IP with Controller IP
-	var out string
-	/*
-		if hostIP, ok := activeGames[in]; ok {
-			out = hostIP
-		} else {
-			out = "N/A"
-		}
-	*/
-	return out
+func (al appListT) extractFirstThreeIPDigits(index string, c, s ipT) (string, bool) {
+	out := "ERROR:Not Found"
+	found := false
+
+	clientPIP := strings.Split(c.private, ".")
+	c.private = fmt.Sprintf("%s.%s.%s", clientPIP[0], clientPIP[1], clientPIP[2])
+	serverPIPFull := al[index].LastPrivateIP
+	serverPIP := strings.Split(serverPIPFull, ".")
+	s.private = fmt.Sprintf("%s.%s.%s", serverPIP[0], serverPIP[1], serverPIP[2])
+	if c.private == s.private {
+		found = true
+		out = "OK:" + serverPIPFull
+	}
+	return out, found
 }
 
 func (l *loggerT) logger() {

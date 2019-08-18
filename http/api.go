@@ -186,39 +186,32 @@ func (al appListT) getServerIP(w http.ResponseWriter, r *http.Request) {
 	loc := "getServerIP"
 	fmt.Printf("package: api			func: %s\n", loc)
 
+	var client ipT
+	var server ipT
+
 	method := r.Method
 
 	l.AppID = r.FormValue("ID")
-	clientPublicIP := r.RemoteAddr
 
-	var clientPrivateIP string
+	client.public = r.RemoteAddr
+	pubIP := strings.Split(client.public, ":")
+	client.public = pubIP[0]
+
 	if _, found := al[l.AppID]; found {
-		clientPrivateIP = al[l.AppID].LastPrivateIP
+		client.private = al[l.AppID].LastPrivateIP
 	}
 
-	pubIP := strings.Split(clientPublicIP, ":")
-	clientPublicIP = pubIP[0]
-
-	out := "ERROR:No LAN server found on IP\n" + clientPublicIP
+	out := "ERROR:No LAN server found on IP\n" + client.public
 	found := false
 
 	if status, ok := qualifyGET(w, method, l.AppID); ok {
 		for i := range al {
-			if al[i].LastPublicIP == clientPublicIP {
-				clientPIP := strings.Split(clientPrivateIP, ".")
-				clientPrivateIP = fmt.Sprintf("%s.%s.%s", clientPIP[0], clientPIP[1], clientPIP[2])
-				serverPrivateIPFull := al[i].LastPrivateIP
-				serverPIP := strings.Split(serverPrivateIPFull, ".")
-				serverPrivateIPComp := fmt.Sprintf("%s.%s.%s", serverPIP[0], serverPIP[1], serverPIP[2])
-				if clientPrivateIP == serverPrivateIPComp {
-					found = true
-					out = "OK:" + serverPrivateIPFull
-					break
-				}
+			if al[i].LastPublicIP == client.public {
+				out, found = al.extractFirstThreeIPDigits(i, client, server)
 			}
-		}
-		if !found {
-			out = "ERROR:Not Found"
+			if found {
+				break
+			}
 		}
 	} else {
 		l.Function = loc
