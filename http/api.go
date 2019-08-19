@@ -206,11 +206,13 @@ func (al appListT) getServerIP(w http.ResponseWriter, r *http.Request) {
 
 	if status, ok := qualifyGET(w, method, l.AppID); ok {
 		for i := range al {
-			if al[i].LastPublicIP == client.public {
-				out, found = al.extractFirstThreeIPDigits(i, client, server)
-			}
-			if found {
-				break
+			if al[i].LastMode == ctrlLite || al[i].LastMode == ctrlPro {
+				if al[i].LastPublicIP == client.public {
+					out, found = al.compareFirstThreeIPDigits(i, client, server)
+				}
+				if found {
+					break
+				}
 			}
 		}
 	} else {

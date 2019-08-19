@@ -28,15 +28,15 @@ and mode client is currently in.
 | Name         | Name of client   |
 | Mode         | Client Mode      |
 
-- **[ip]/getServerIP/** - Returns nearest controller (if any) based upon Private 
+- **[ip]/getServerIP/** - Returns nearest controller IP on LAN (if any) based upon Private 
 and Public IP of clients IP. Assumes same public-facing IP of client and 
-controller.
+controller and both are on same private IP range.
 
 | Formvalue    | Description      |
 |--------------|------------------|
-| PrivateIP    | LAN IP           |
+| ID           | AppID            |
 
-- **[ip]/getWelcome/** - returns a random opening messages.
+- **[ip]/getWelcome/** - returns a random opening messages from list loaded on startup.
 
 | Formvalue    | Description      |
 |--------------|------------------|

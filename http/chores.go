@@ -60,7 +60,20 @@ func getMode(in string) modeT {
 	return out
 }
 
-func (al appListT) extractFirstThreeIPDigits(index string, c, s ipT) (string, bool) {
+func (l *loggerT) logger() {
+	t := time.Now()
+	l.Date = t.UTC().Format("2006-01-02 15:04:05")
+
+	outBytes, err := json.MarshalIndent(l, "", "	")
+	if err != nil {
+		log.Printf("ERROR:Could not JSONify AppList, %v", err)
+	}
+	outJSON := string(outBytes[:])
+
+	fmt.Println(outJSON)
+}
+
+func (al appListT) compareFirstThreeIPDigits(index string, c, s ipT) (string, bool) {
 	out := "ERROR:Not Found"
 	found := false
 
@@ -74,19 +87,6 @@ func (al appListT) extractFirstThreeIPDigits(index string, c, s ipT) (string, bo
 		out = "OK:" + serverPIPFull
 	}
 	return out, found
-}
-
-func (l *loggerT) logger() {
-	t := time.Now()
-	l.Date = t.UTC().Format("2006-01-02 15:04:05")
-
-	outBytes, err := json.MarshalIndent(l, "", "	")
-	if err != nil {
-		log.Printf("ERROR:Could not JSONify AppList, %v", err)
-	}
-	outJSON := string(outBytes[:])
-
-	fmt.Println(outJSON)
 }
 
 func (al appListT) transferAndSave(ai appInfoT) {
@@ -123,17 +123,6 @@ func qualifyPOST(w http.ResponseWriter, method string) bool {
 		return false
 	}
 	return true
-}
-
-func qualifyPUT(w http.ResponseWriter, method string, str string) (string, bool) {
-	if method != "PUT" {
-		http.Error(w, http.StatusText(405), 405)
-		status := "ERROR:not PUT method"
-		fmt.Println(status)
-		return status, false
-	}
-	status, ok := qualifyQuery(w, str)
-	return status, ok
 }
 
 func qualifyQuery(w http.ResponseWriter, in string) (string, bool) {
