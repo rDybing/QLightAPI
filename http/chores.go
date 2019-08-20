@@ -73,7 +73,7 @@ func (l *loggerT) logger() {
 	fmt.Println(outJSON)
 }
 
-func (al appListT) compareFirstThreeIPDigits(index string, c, s ipT) (string, bool) {
+func (al appListT) compareFirstThreeIPDigits(index string, c ipT) (string, bool) {
 	out := "ERROR:Not Found"
 	found := false
 
@@ -81,8 +81,8 @@ func (al appListT) compareFirstThreeIPDigits(index string, c, s ipT) (string, bo
 	c.private = fmt.Sprintf("%s.%s.%s", clientPIP[0], clientPIP[1], clientPIP[2])
 	serverPIPFull := al[index].LastPrivateIP
 	serverPIP := strings.Split(serverPIPFull, ".")
-	s.private = fmt.Sprintf("%s.%s.%s", serverPIP[0], serverPIP[1], serverPIP[2])
-	if c.private == s.private {
+	serverPrivateIP := fmt.Sprintf("%s.%s.%s", serverPIP[0], serverPIP[1], serverPIP[2])
+	if c.private == serverPrivateIP {
 		found = true
 		out = "OK:" + serverPIPFull
 	}

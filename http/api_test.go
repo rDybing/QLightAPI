@@ -75,3 +75,51 @@ func TestGetMode(t *testing.T) {
 		})
 	}
 }
+
+func TestCompareFirstThreeIPDigits(t *testing.T) {
+	const testFunc = "compareFirstThreeIPDigits..."
+	fmt.Printf("Testing: %s\n", testFunc)
+
+	var appList appListT
+	var ai appInfoT
+	var c ipT
+
+	ai.ID = "testID"
+	ai.LastPrivateIP = "123.123.123.123"
+
+	appList = make(map[string]appInfoT)
+	appList[ai.ID] = ai
+
+	tt := []struct {
+		name    string
+		index   string
+		private string
+		foundIP bool
+		out     string
+	}{
+		{
+			name:    "matching private IP",
+			index:   "testID",
+			private: "123.123.123.123",
+			foundIP: true,
+			out:     "OK:" + appList["testID"].LastPrivateIP,
+		},
+		{
+			name:    "non-matching private IP",
+			index:   "testID",
+			private: "124.124.124.124",
+			foundIP: false,
+			out:     "ERROR:Not Found",
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			c.private = tc.private
+			msg, found := appList.compareFirstThreeIPDigits(tc.index, c)
+			if found != tc.foundIP {
+				t.Fatalf("Expected %v, got %v\nMessage: %s, got %s\n", tc.foundIP, found, tc.out, msg)
+			}
+		})
+	}
+}

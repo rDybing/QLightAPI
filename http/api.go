@@ -187,7 +187,6 @@ func (al appListT) getServerIP(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("package: api			func: %s\n", loc)
 
 	var client ipT
-	var server ipT
 
 	method := r.Method
 
@@ -208,7 +207,7 @@ func (al appListT) getServerIP(w http.ResponseWriter, r *http.Request) {
 		for i := range al {
 			if al[i].LastMode == ctrlLite || al[i].LastMode == ctrlPro {
 				if al[i].LastPublicIP == client.public {
-					out, found = al.compareFirstThreeIPDigits(i, client, server)
+					out, found = al.compareFirstThreeIPDigits(i, client)
 				}
 				if found {
 					break
