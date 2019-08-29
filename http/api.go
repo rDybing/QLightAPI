@@ -89,7 +89,7 @@ func (c *configT) getServerIP(tlsOK bool) {
 
 func (al appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 	loc := "postAppInfo"
-	fmt.Printf("package: api			func: %s\n", loc)
+	fmt.Printf("package: api			func: %s", loc)
 
 	var aTemp appInfoT
 	var modeTemp string
@@ -105,10 +105,6 @@ func (al appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 			aTemp.Name = r.FormValue("Name")
 			aTemp.WH = r.FormValue("WH")
 			aTemp.Aspect = r.FormValue("Aspect")
-			publicIP := r.RemoteAddr
-			pubIP := strings.Split(publicIP, ":")
-			aTemp.LastPublicIP = pubIP[0]
-			aTemp.LastPrivateIP = r.FormValue("PrivateIP")
 			aTemp.OS = r.FormValue("OS")
 			aTemp.Model = r.FormValue("Model")
 			modeTemp = r.FormValue("Mode")
@@ -127,6 +123,10 @@ func (al appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 				aTemp.LastUpdate = aTemp.LastLogin
 				aTemp.LastMode = getMode(modeTemp)
 			}
+			publicIP := r.RemoteAddr
+			pubIP := strings.Split(publicIP, ":")
+			aTemp.LastPublicIP = pubIP[0]
+			aTemp.LastPrivateIP = r.FormValue("PrivateIP")
 			al.transferAndSave(aTemp)
 			msg := "New Entry"
 			if update {
@@ -135,6 +135,7 @@ func (al appListT) postAppInfo(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintf(w, "OK:%s", msg)
 		}
 	}
+	fmt.Printf("\tAppID: %s\tAppIP: %s\n", aTemp.ID, aTemp.LastPublicIP)
 }
 
 func (al appListT) postAppUpdate(w http.ResponseWriter, r *http.Request) {
