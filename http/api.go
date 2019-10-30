@@ -49,7 +49,7 @@ func InitAPI() {
 
 	router.Handle("/postAppInfo", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(appList.postAppInfo)))
 	router.Handle("/postAppUpdate", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(appList.postAppUpdate)))
-	router.Handle("/getServerIP", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(appList.getServerIP)))
+	router.Handle("/getControllerIP", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(appList.getControllerIP)))
 	router.Handle("/getWelcome", httpauth.SimpleBasicAuth(config.AuthID, config.AuthKey)(http.HandlerFunc(welcome.getWelcome)))
 
 	if tlsOK {
@@ -182,7 +182,7 @@ func (al appListT) postAppUpdate(w http.ResponseWriter, r *http.Request) {
 
 //************************************************* Get Calls **********************************************************
 
-func (al appListT) getServerIP(w http.ResponseWriter, r *http.Request) {
+func (al appListT) getControllerIP(w http.ResponseWriter, r *http.Request) {
 	var l loggerT
 	loc := "getServerIP"
 	fmt.Printf("package: api			func: %s\n", loc)
