@@ -59,7 +59,9 @@ Contains the following non-standard libraries:
 location   | name/handle |
 -----------|-------------|
 github:    | rDybing     |
-Linked In: | Roy Dybing  |
+twitter:   | @DybingRoy  |
+linked in: | Roy Dybing  |
+mewe:      | Roy Dybing  |
 
 ---
 

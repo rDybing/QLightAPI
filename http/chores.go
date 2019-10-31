@@ -43,18 +43,25 @@ func getMode(in string) modeT {
 
 	switch in {
 	case "clientSP":
+		// 0: Client mode SmartPhone
 		out = clientSP
 	case "clientComp":
+		// 1: Client mode Computer
 		out = clientComp
 	case "clientIOT":
+		// 2: Client mode Arduino
 		out = clientIOT
 	case "ctrlLite":
+		// 3: Controller mode Free version
 		out = ctrlLite
 	case "ctrlPro":
+		// 4: Controller mode Pro version
 		out = ctrlPro
 	case "noneSP":
+		// 5: Mode not selected SmartPhone
 		out = noneSP
 	case "noneComp":
+		// 6: Mode not selected Computer
 		out = noneComp
 	}
 	return out
