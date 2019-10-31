@@ -28,7 +28,7 @@ and mode client is currently in.
 | Name         | Name of client   |
 | Mode         | Client Mode      |
 
-- **[ip]/getServerIP/** - Returns nearest controller IP on LAN (if any) based upon Private 
+- **[ip]/getControllerIP/** - Returns nearest controller IP on LAN (if any) based upon Private 
 and Public IP of clients IP. Assumes same public-facing IP of client and 
 controller and both are on same private IP range.
 
@@ -56,11 +56,10 @@ Contains the following non-standard libraries:
 
 **Contact:**
 
-location   | name/handle | checks
------------|-------------|--------
-github:    | rDybing     | often
-Linked In: | Roy Dybing  | monthly
-MeWe:      | Roy Dybing  | weekly
+location   | name/handle |
+-----------|-------------|
+github:    | rDybing     |
+Linked In: | Roy Dybing  |
 
 ---
 
@@ -69,7 +68,7 @@ MeWe:      | Roy Dybing  | weekly
 - Version format: [major release].[new feature(s)].[bugfix patch-version]
 - Date format: yyyy-mm-dd
 
-#### v.1.0.0: TBA medio August 2019
+#### v.1.0.0: TBA medio November 2019
 
 - First release 
 

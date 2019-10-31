@@ -13,7 +13,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const version = "v0.3.0"
+const version = "v0.3.1"
 
 var appList appListT
 var welcome welcomeT
