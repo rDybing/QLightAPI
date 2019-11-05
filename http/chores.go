@@ -77,6 +77,7 @@ func (l *loggerT) logger() {
 		log.WithFields(log.Fields{
 			"date":     l.Date,
 			"package":  "api",
+			"file":     "chores.go",
 			"function": "logger",
 			"error":    err,
 			"data":     outBytes,
