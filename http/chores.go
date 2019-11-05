@@ -3,12 +3,13 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var wg sync.WaitGroup
@@ -73,7 +74,13 @@ func (l *loggerT) logger() {
 
 	outBytes, err := json.MarshalIndent(l, "", "	")
 	if err != nil {
-		log.Printf("ERROR:Could not JSONify log-entry, %v", err)
+		log.WithFields(log.Fields{
+			"date":     l.Date,
+			"package":  "api",
+			"function": "logger",
+			"error":    err,
+			"data":     outBytes,
+		}).Warning("ERROR:Could not JSONify log-entry")
 	}
 	outJSON := string(outBytes[:])
 
