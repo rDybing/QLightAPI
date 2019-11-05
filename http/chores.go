@@ -73,7 +73,7 @@ func (l *loggerT) logger() {
 
 	outBytes, err := json.MarshalIndent(l, "", "	")
 	if err != nil {
-		log.Printf("ERROR:Could not JSONify AppList, %v", err)
+		log.Printf("ERROR:Could not JSONify log-entry, %v", err)
 	}
 	outJSON := string(outBytes[:])
 
