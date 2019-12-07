@@ -1,12 +1,17 @@
-/********************************
+/***********************************************************************************************************************
+
   qlight.go
   License: MIT
   Copyright (c) 2019 Roy Dybing
-  github   : rDybing
-  Linked In: Roy Dybing
-  MeWe     : Roy Dybing
+
+  github	: rDybing
+  Linked In	: Roy Dybing
+  Twitter	: @DybingRoy
+  MeWe		: Roy Dybing
+
   Full license text in README.md
-*********************************/
+
+***********************************************************************************************************************/
 
 package main
 
