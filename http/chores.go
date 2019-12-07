@@ -162,6 +162,13 @@ func qualifyQuery(w http.ResponseWriter, in string) (string, bool) {
 		fmt.Println(status)
 		return status, false
 	}
+	// prevent SQL injection by disallowing semi-colon in query string
+	if strings.Index(in, ";") != -1 {
+		http.Error(w, http.StatusText(400), 400)
+		status := "ERROR:Message contain illegal character!"
+		fmt.Println(status)
+		return status, false
+	}
 	// prevent file-structure traversing
 	if strings.Index(in, "/") != -1 || strings.Index(in, "\\") != -1 {
 		http.Error(w, http.StatusText(400), 400)
